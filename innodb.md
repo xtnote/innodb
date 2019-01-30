@@ -69,3 +69,16 @@ read commited：不可重复读，读到已提交的数据。（幻象问题，�
 死锁处理
 1. 设置事务超时时间
 2. 使用wait-for graph（等待图）的方式进行死锁检测
+
+事务：
+隔离性通过锁实现
+原子性、一致性、持久性通过redo log和undo log实现
+
+事务提交时，先将事务日志写入到重做日志文件，可以设置fsync的周期
+事务在undo log segment分配页并写入undo log的过程同样要写入重做日志
+
+事务提交时，将undo log放入列表中，由purge线程删除，因为此时undo log可能由其他事务使用
+
+undo log格式：
+insert undo log，对应insert，只对事务本身可见，提交后可直接删除
+update undo log，对应delete和update，对需要提供mvcc机制，
