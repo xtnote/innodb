@@ -20,3 +20,11 @@ docker container --help
 
 docker build -t restaurant:0.1 -f ./build/libs/DockerfileBaseapp .
 docker save -o restaurant.0.1.tar restaurant:0.1
+
+
+自定义网络：
+创建  docker network create my-net
+删除  docker network rm my-net
+创建容器时连接  docker create --name my-nginx --network my-net --publish 8080:80 nginx:latest
+运行时连接     docker network connect my-net my-nginx
+断开连接       docker network disconnect my-net my-nginx
