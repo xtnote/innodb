@@ -39,3 +39,16 @@ docker run -it -h NEWCONTAINER --volumes-from container-test debian /bin/bash<br
 
 用纯数据容器来持久化数据库、配置文件或者数据文件等。官方的文档上有详细的解释。例如：<br>
 docker run --name dbdata postgres echo "Data-only container for postgres"<br>
+
+ #创建volume<br>
+docker volume create volume-test1<br>
+ #查看参数<br>
+docker inspect volume-test1<br>
+ #使用volume<br>
+docker run -dit --name busybox3 -v volume-test1:/volume busybox<br>
+ #查看<br>
+docker inspect -f {{.Mounts}} busybox3<br>
+ #查看docker数据卷<br>
+docker volume ls
+ #删除没使用的数据卷(谨慎使用)<br>
+docker volume prune
