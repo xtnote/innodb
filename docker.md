@@ -17,3 +17,6 @@ docker container ls -aq
 
 查看帮助
 docker container --help
+
+docker build -t restaurant:0.1 -f ./build/libs/DockerfileBaseapp .
+docker save -o restaurant.0.1.tar restaurant:0.1
