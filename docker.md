@@ -55,12 +55,14 @@ docker volume prune
 
 # 自动启动
 在容器退出或断电开机后，docker可以通过在容器创建时的--restart参数来指定重启策略；
+
 多个参数值选择
 no  不自动重启容器. (默认值)
 on-failure  容器发生error而退出(容器退出状态不为0)重启容器,可以指定重启的最大次数，如：on-failure:10
 unless-stopped  在容器已经stop掉或Docker stoped/restarted的时候才重启容器
 always  在容器已经stop掉或Docker stoped/restarted的时候才重启容器，手动stop的不算
-# 设置启动策略
+
+设置启动策略
 docker run --restart always --name mynginx -d nginx
 如果容器已经被创建，我们想要修改容器的重启策略
 docker update --restart no mynginx
