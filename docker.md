@@ -1,11 +1,11 @@
 # docker
 
-获取docker版本<br>
-docker --version<br>
-docker version<br>
+获取docker版本  
+docker --version  
+docker version  
 
-获取docker信息<br>
-docker info<br>
+获取docker信息  
+docker info  
 
 查看下载的image<br>
 docker image ls<br>
