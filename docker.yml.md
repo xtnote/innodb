@@ -37,6 +37,101 @@ networks:
 driver: bridge
 ```
 
+```yaml
+version: "3"
+services:
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379"
+    networks:
+      - frontend
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 2
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+
+  db:
+    image: postgres:9.4
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    networks:
+      - backend
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+
+  vote:
+    image: dockersamples/examplevotingapp_vote:before
+    ports:
+      - 5000:80
+    networks:
+      - frontend
+    depends_on:
+      - redis
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 2
+      restart_policy:
+        condition: on-failure
+
+  result:
+    image: dockersamples/examplevotingapp_result:before
+    ports:
+      - 5001:80
+    networks:
+      - backend
+    depends_on:
+      - db
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 2
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+
+  worker:
+    image: dockersamples/examplevotingapp_worker
+    networks:
+      - frontend
+      - backend
+    deploy:
+      mode: replicated
+      replicas: 1
+      labels: [APP=VOTING]
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 3
+        window: 120s
+      placement:
+        constraints: [node.role == manager]
+
+  visualizer:
+    image: dockersamples/visualizer:stable
+    ports:
+      - "8080:8080"
+    stop_grace_period: 1m30s
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+
+networks:
+  frontend:
+  backend:
+
+volumes:
+  db-data:
+```
+
 ### 版本声明
 `version: '2'`
 
@@ -131,6 +226,15 @@ dns_search:
   - dc2.example.com
 ```
 
+### dns_search
+自定义 DNS 搜索域，可以是单个值或列表
+```yaml
+dns_search: example.com
+dns_search:
+  - dc1.example.com
+  - dc2.example.com
+```
+
 ### tmpfs
 挂载临时目录到容器内部，与 run 的参数一样效果：
 ```yaml
@@ -165,7 +269,12 @@ env_file:
   - ./apps/web.env
   - /opt/secrets.env
 ```
-注意的是这里所说的环境变量是对宿主机的 Compose 而言的，如果在配置文件中有 build 操作，这些变量并不会进入构建过程中，如果要在构建中使用变量还是首选 arg 标签。
+注意的是这里所说的环境变量是对宿主机的 Compose 而言的，如果在配置文件中有 build 操作，这些变量并不会进入构建过程中，如果要在构建中使用变量还是首选 arg 标签。  
+环境配置文件 env_file 中的声明每行都是以 VAR=VAL 格式，其中以 # 开头的被解析为注释而被忽略  
+```
+# a.env
+VAR=1
+```
 
 ### environment
 这个标签的作用是设置镜像变量，它可以保存变量到镜像里面，也就是说启动的容器也会包含这些变量设置，这是与 arg 最大的不同。
@@ -259,7 +368,8 @@ logging:
 
 ### ports
 映射端口的标签。
-使用HOST:CONTAINER格式或者只是指定容器的端口，宿主机会随机映射端口。
+* SHORT 语法
+> 使用HOST:CONTAINER格式或者只是指定容器的端口，宿主机会随机映射端口。
 ```yaml
 ports:
  - "3000"
@@ -268,6 +378,20 @@ ports:
  - "127.0.0.1:8001:8001"
 ```
 注意：当使用HOST:CONTAINER格式来映射端口时，如果你使用的容器端口小于60你可能会得到错误得结果，因为YAML将会解析xx:yy这种数字格式为60进制。所以建议采用字符串格式。
+
+* LONG 语法
+> LONG 语法支持 SHORT 语法不支持的附加字段  
+target：容器内的端口  
+published：公开的端口  
+protocol： 端口协议（tcp 或 udp）  
+mode：通过host 用在每个节点还是哪个发布的主机端口或使用 ingress 用于集群模式端口进行平衡负载，  
+```yaml
+ports:
+  - target: 80
+    published: 8080
+    protocol: tcp
+    mode: host
+```
 
 ### security_opt
 为每个容器覆盖默认的标签。简单说来就是管理全部服务的标签。比如设置全部服务的user标签值为USER。
@@ -280,40 +404,6 @@ security_opt:
 ### stop_signal
 设置另一个信号来停止容器。在默认情况下使用的是SIGTERM停止容器。设置另一个信号可以使用stop_signal标签。
 `stop_signal: SIGUSR1`  
-
-### volumes
-挂载一个目录或者一个已存在的数据卷容器，可以直接使用 [HOST:CONTAINER] 这样的格式，或者使用 [HOST:CONTAINER:ro] 这样的格式，后者对于容器来说，数据卷是只读的。
-Compose的数据卷指定路径可以是相对路径，使用 . 或者 .. 来指定相对目录。
-数据卷的格式可以是下面多种形式：
-```yaml
-volumes:
-  // 只是指定一个路径，Docker 会自动在创建一个数据卷（这个路径是容器内部的）。
-  - /var/lib/mysql
-
-  // 使用绝对路径挂载数据卷
-  - /opt/data:/var/lib/mysql
-
-  // 以 Compose 配置文件为中心的相对路径作为数据卷挂载到容器。
-  - ./cache:/tmp/cache
-
-  // 使用用户的相对路径（~/ 表示的目录是 /home/<用户目录>/ 或者 /root/）。
-  - ~/configs:/etc/configs/:ro
-
-  // 已经存在的命名的数据卷。
-  - datavolume:/var/lib/mysql
-```
-如果你不使用宿主机的路径，你可以指定一个volume_driver。
-`volume_driver: mydriver`  
-
-### volumes_from
-从其它容器或者服务挂载数据卷，可选的参数是 :ro或者 :rw，前者表示容器只读，后者表示容器对数据卷是可读可写的。默认情况下是可读可写的。
-```yaml
-volumes_from:
-  - service_name
-  - service_name:ro
-  - container:container_name
-  - container:container_name:rw
-```
 
 ### cap_add, cap_drop
 添加或删除容器的内核功能。
@@ -408,4 +498,366 @@ read_only: true
 shm_size: 64M
 stdin_open: true
 tty: true
+```
+
+### deploy
+指定与部署和运行服务相关的配置
+```yaml
+version: '3'
+services:
+  redis:
+    image: redis:alpine
+    deploy:
+      replicas: 6
+      update_config:
+        parallelism: 2
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+```
+
+### endpoint_mode
+指定连接到群组外部客户端服务发现方法
+* endpoint_mode: vip ：Docker 为该服务分配了一个虚拟 IP(VIP),作为客户端的 “前端“ 部位用于访问网络上的服务。
+* endpoint_mode: dnsrr : DNS轮询（DNSRR）服务发现不使用单个虚拟 IP。Docker为服务设置 DNS 条目，使得服务名称的 DNS 查询返回一个 IP 地址列表，并且客户端直接连接到其中的一个。如果想使用自己的负载平衡器，或者混合 Windows 和 Linux 应用程序，则 DNS 轮询调度（round-robin）功能就非常实用。
+
+### labels
+指定服务的标签，这些标签仅在服务上设置。
+```yaml
+version: "3"
+services:
+  web:
+    image: web
+    deploy:
+      labels:
+        com.example.description: "This label will appear on the web service"
+```
+通过将 deploy 外面的 labels 标签来设置容器上的 labels
+```yaml
+version: "3"
+services:
+  web:
+    image: web
+    labels:
+      com.example.description: "This label will appear on all containers for the web service"
+```
+
+### mode
+* global:每个集节点只有一个容器  
+* replicated:指定容器数量（默认）  
+```yaml
+version: '3'
+services:
+  worker:
+    image: dockersamples/examplevotingapp_worker
+    deploy:
+      mode: global
+```
+
+### placement
+指定 constraints 和 preferences
+```yaml
+version: '3'
+services:
+  db:
+    image: postgres
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+          - engine.labels.operatingsystem == ubuntu 14.04
+        preferences:
+          - spread: node.labels.zone
+```
+
+### replicas
+如果服务是 replicated（默认)，需要指定运行的容器数量
+```yaml
+version: '3'
+services:
+  worker:
+    image: dockersamples/examplevotingapp_worker
+    networks:
+      - frontend
+      - backend
+    deploy:
+      mode: replicated
+      replicas: 6
+```
+
+### resources
+配置资源限制
+```yaml
+version: '3'
+services:
+  redis:
+    image: redis:alpine
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 50M
+        reservations:
+          cpus: '0.25'
+          memory: 20M
+```
+
+### restart_policy
+配置容器的重新启动，代替 restart
+
+condition:值可以为 none 、on-failure 以及 any(默认)  
+delay: 尝试重启的等待时间，默认为 0  
+max_attempts:在放弃之前尝试重新启动容器次数（默认：从不放弃）。如果重新启动在配置中没有成功，则此尝试不计入配置max_attempts 值。例如，如果 max_attempts 值为 2，并且第一次尝试重新启动失败，则可能会尝试重新启动两次以上。  
+windows:在决定重新启动是否成功之前的等时间，指定为持续时间（默认值：立即决定）。  
+```yaml
+version: "3"
+services:
+  redis:
+    image: redis:alpine
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+```
+
+### update_config
+配置更新服务，用于无缝更新应用（rolling update)
+
+parallelism：一次性更新的容器数量  
+delay：更新一组容器之间的等待时间。  
+failure_action：如果更新失败，可以执行的的是 continue、rollback 或 pause （默认）  
+monitor：每次任务更新后监视失败的时间(ns|us|ms|s|m|h)（默认为0）  
+max_failure_ratio：在更新期间能接受的失败率  
+order：更新次序设置，top-first（旧的任务在开始新任务之前停止）、start-first（新的任务首先启动，并且正在运行的任务短暂重叠）（默认 stop-first）  
+```yaml
+version: '3.4'
+services:
+  vote:
+    image: dockersamples/examplevotingapp_vote:before
+    depends_on:
+      - redis
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 2
+        delay: 10s
+        order: stop-first
+```
+
+### devices
+设置映射列表，与 Docker 客户端的 --device 参数类似 :
+```yaml
+devices:
+  - "/dev/ttyUSB0:/dev/ttyUSB0"
+```
+
+### healthcheck
+用于检查测试服务使用的容器是否正常
+```yaml
+healthcheck:
+  test: ["CMD", "curl", "-f", "http://localhost"]
+  interval: 1m30s
+  timeout: 10s
+  retries: 3
+  start_period: 40s
+```
+interval，timeout 以及 start_period 都定为持续时间  
+test 必须是字符串或列表，如果它是一个列表，第一项必须是 NONE，CMD 或 CMD-SHELL ；如果它是一个字符串，则相当于指定CMD-SHELL 后跟该字符串。
+```yaml
+# Hit the local web app
+test: ["CMD", "curl", "-f", "http://localhost"]
+# As above, but wrapped in /bin/sh. Both forms below are equivalent.
+test: ["CMD-SHELL", "curl -f http://localhost || exit 1"]
+test: curl -f https://localhost || exit 1
+```
+如果需要禁用镜像的所有检查项目，可以使用 disable:true,相当于 test:["NONE"]
+```yaml
+healthcheck:
+  disable: true
+```
+
+### ipv4_address、ipv6_address
+为服务的容器指定一个静态 IP 地址
+```yaml
+version: '2.1'
+services:
+ app:
+   image: busybox
+   command: ifconfig
+   networks:
+     app_net:
+       ipv4_address: 172.16.238.10
+       ipv6_address: 2001:3984:3989::10
+
+networks:
+ app_net:
+   driver: bridge
+   enable_ipv6: true
+   ipam:
+     driver: default
+     config:
+     - subnet: 172.16.238.0/24
+     - subnet: 2001:3984:3989::/64
+```
+
+### secrets
+通过 secrets为每个服务授予相应的访问权限
+* SHORT 语法
+```yaml
+version: "3.1"
+services:
+  redis:
+    image: redis:latest
+    deploy:
+      replicas: 1
+    secrets:
+      - my_secret
+      - my_other_secret
+secrets:
+  my_secret:
+    file: ./my_secret.txt
+  my_other_secret:
+    external: true
+```
+* LONG 语法
+LONG 语法可以添加其他选项  
+source：secret 名称  
+target：在服务任务容器中需要装载在 /run/secrets/ 中的文件名称，如果 source 未定义，那么默认为此值  
+uid&gid：在服务的任务容器中拥有该文件的 UID 或 GID 。如果未指定，两者都默认为 0。  
+mode：以八进制表示法将文件装载到服务的任务容器中 /run/secrets/ 的权限。例如，0444 代表可读。  
+```yaml
+version: "3.1"
+services:
+  redis:
+    image: redis:latest
+    deploy:
+      replicas: 1
+    secrets:
+      - source: my_secret
+        target: redis_secret
+        uid: '103'
+        gid: '103'
+        mode: 0440
+secrets:
+  my_secret:
+    file: ./my_secret.txt
+  my_other_secret:
+    external: true
+```
+
+### sysctls
+在容器中设置的内核参数，可以为数组或字典
+```yaml
+sysctls:
+  net.core.somaxconn: 1024
+  net.ipv4.tcp_syncookies: 0
+
+sysctls:
+  - net.core.somaxconn=1024
+  - net.ipv4.tcp_syncookies=0
+```
+
+### ulimits
+覆盖容器的默认限制，可以单一地将限制值设为一个整数，也可以将soft/hard 限制指定为映射
+```yaml
+ulimits:
+  nproc: 65535
+  nofile:
+    soft: 20000
+    hard: 40000
+```
+
+### volumes
+挂载一个目录或者一个已存在的数据卷容器，可以直接使用 HOST:CONTAINER 这样的格式，或者使用 HOST:CONTAINER:ro 这样的格式，后者对于容器来说，数据卷是只读的，这样可以有效保护宿主机的文件系统
+```yaml
+version: "3.2"
+services:
+  web:
+    image: nginx:alpine
+    volumes:
+      - type: volume
+        source: mydata
+        target: /data
+        volume:
+          nocopy: true
+      - type: bind
+        source: ./static
+        target: /opt/app/static
+
+  db:
+    image: postgres:latest
+    volumes:
+      - "/var/run/postgres/postgres.sock:/var/run/postgres/postgres.sock"
+      - "dbdata:/var/lib/postgresql/data"
+
+volumes:
+  mydata:
+  dbdata:
+```
+* SHORT 语法
+> Compose 的数据卷指定路径可以是相对路径，使用 . 或者 .. 来指定相对目录。  
+数据卷的格式可以是下面多种形式：  
+```yaml
+volumes:
+  # 只是指定一个路径，Docker 会自动在创建一个数据卷（这个路径是容器内部的）。
+  - /var/lib/mysql
+  # 使用绝对路径挂载数据卷
+  - /opt/data:/var/lib/mysql
+  # 以 Compose 配置文件为中心的相对路径作为数据卷挂载到容器。
+  - ./cache:/tmp/cache
+  # 使用用户的相对路径（~/ 表示的目录是 /home/<用户目录>/ 或者 /root/）。
+  - ~/configs:/etc/configs/:ro
+  # 已经存在的命名的数据卷。
+  - datavolume:/var/lib/mysql
+```
+如果你不使用宿主机的路径，可以指定一个 volume_driver  
+volume_driver: mydriver  
+
+* LONG 语法
+> LONG 语法有些附加字段  
+type：安装类型，可以为 volume、bind 或 tmpfs  
+source：安装源，主机上用于绑定安装的路径或定义在顶级 volumes密钥中卷的名称 ,不适用于 tmpfs 类型安装。  
+target：卷安装在容器中的路径  
+read_only：标志将卷设置为只读  
+bind：配置额外的绑定选项  
+propagation：用于绑定的传播模式  
+volume：配置额外的音量选项  
+nocopy：创建卷时禁止从容器复制数据的标志  
+tmpfs：配置额外的 tmpfs 选项  
+size：tmpfs 的大小，以字节为单位  
+```yaml
+version: "3.2"
+services:
+  web:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - type: volume
+        source: mydata
+        target: /data
+        volume:
+          nocopy: true
+      - type: bind
+        source: ./static
+        target: /opt/app/static
+
+networks:
+  webnet:
+
+volumes:
+  mydata:
+```
+
+
+### volumes_from
+从其它容器或者服务挂载数据卷，可选的参数是 :ro或者 :rw，前者表示容器只读，后者表示容器对数据卷是可读可写的。默认情况下是可读可写的。
+```yaml
+volumes_from:
+  - service_name
+  - service_name:ro
+  - container:container_name
+  - container:container_name:rw
 ```
