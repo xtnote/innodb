@@ -29,8 +29,8 @@ docker save -o restaurant.0.1.tar restaurant:0.1<br>
 运行时连接     docker network connect my-net my-nginx<br>
 断开连接       docker network disconnect my-net my-nginx<br>
 
-docker attach可以attach到一个已经运行的容器的stdin，然后进行命令执行的动作。 但是需要注意的是，如果从这个stdin中exit，会导致容器的停止。
-docker exec -it bb2 /bin/bash   不会像attach方式因为退出，导致整个容器退出。 
+docker attach可以attach到一个已经运行的容器的stdin，然后进行命令执行的动作。 但是需要注意的是，如果从这个stdin中exit，会导致容器的停止。<br>
+docker exec -it bb2 /bin/bash   不会像attach方式因为退出，导致整个容器退出。 <br>
 
 在运行时使用-v来声明Volume,将挂载主机的/home/adrian/data目录到容器内的/data目录上：<br>
 docker run -v /home/adrian/data:/data debian ls /data<br>
@@ -49,6 +49,6 @@ docker run -dit --name busybox3 -v volume-test1:/volume busybox<br>
  #查看<br>
 docker inspect -f {{.Mounts}} busybox3<br>
  #查看docker数据卷<br>
-docker volume ls
+docker volume ls<br>
  #删除没使用的数据卷(谨慎使用)<br>
-docker volume prune
+docker volume prune<br>
