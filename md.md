@@ -59,7 +59,7 @@
 public void main(String argv[]) {
 	System.out.printlen("hello world")
 }
-\```
+\`\`\`
 ```
 
 ### 表格
