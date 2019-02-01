@@ -41,20 +41,21 @@ docker run -it -h NEWCONTAINER --volumes-from container-test debian /bin/bash<br
 docker run --name dbdata postgres echo "Data-only container for postgres"<br>
 
 # 创建volume
-docker volume create volume-test1<br>
-查看参数<br>
-docker inspect volume-test1<br>
-使用volume<br>
-docker run -dit --name busybox3 -v volume-test1:/volume busybox<br>
-查看<br>
-docker inspect -f {{.Mounts}} busybox3<br>
-查看docker数据卷<br>
-docker volume ls<br>
-删除没使用的数据卷(谨慎使用)<br>
-docker volume prune<br>
+docker volume create volume-test1
+查看参数
+docker inspect volume-test1
+使用volume
+docker run -dit --name busybox3 -v volume-test1:/volume busybox
+查看
+docker inspect -f {{.Mounts}} busybox3
+查看docker数据卷
+docker volume ls
+删除没使用的数据卷(谨慎使用)
+docker volume prune
 
+# 自动启动
 在容器退出或断电开机后，docker可以通过在容器创建时的--restart参数来指定重启策略；
-# 多个参数值选择
+多个参数值选择
 no  不自动重启容器. (默认值)
 on-failure  容器发生error而退出(容器退出状态不为0)重启容器,可以指定重启的最大次数，如：on-failure:10
 unless-stopped  在容器已经stop掉或Docker stoped/restarted的时候才重启容器
