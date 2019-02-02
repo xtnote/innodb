@@ -64,4 +64,15 @@ docker save -o restaurant.0.1.tar restaurant:0.1
 * 设置启动策略  
 `docker run --restart always --name mynginx -d nginx`  
 * 如果容器已经被创建，我们想要修改容器的重启策略  
-`docker update --restart no mynginx`  
+`docker update --restart no mynginx`
+
+### 查看容器映射主机端口
+docker port xt.grafana  
+3000/tcp(容器端口) -> 0.0.0.0:3001(主机端口)
+
+### 主机和容器之间的文件拷贝
+docker cp  主机路径    ID/NAME:容器路径        //这是从主机拷贝文件到容器  
+docker cp   ID/NAME:容器路径    主机路径        //这是从容器拷贝文件到主机  
+
+### 重命名容器
+语法格式： docker rename oldname newname  
