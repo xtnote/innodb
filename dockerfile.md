@@ -90,7 +90,7 @@ src可以是一个URL，Docker引擎会试图去下载这个链接的文件放�
 1. `ENTRYPOINT ["executable", "param1", "param2"] (exec form, preferred)`  
 2. `ENTRYPOINT command param1 param2 (shell form)`  
 ENTRYPOINT的目的和CMD一样，都是在指定容器启动程序及参数。ENTRYPOINT 在运行时也可以替代，需要通过docker run的参数 -entrypoint来指定。  
-当指定了ENTRYPOINT后，CMD的含义就发生了改变，不再是直接的运行其命令，而是将CMD的内容作为参数传给ENTRYPOINT指令，换句话说实际执行时，将变为：<ENTRYPOINT> "<CMD>"
+当指定了ENTRYPOINT后，CMD的含义就发生了改变，不再是直接的运行其命令，而是将CMD的内容作为参数传给ENTRYPOINT指令，换句话说实际执行时，将变为：`<ENTRYPOINT> "<CMD>"`
 
 ### ENV 设置环境变量
 ENV环境变量格式：  
