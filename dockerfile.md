@@ -49,7 +49,7 @@ Dockerfile 是一个文本文件，其内包含了一条条的指令(Instruction
 `FROM <image>[:<tag>] [AS <name>]`  
 `FROM <image>[@<digest>] [AS <name>]`  
 FROM必须是第一个或者在ARG之后  
-AS <name> 使用方式 copy--from=<name>  
+AS <name> 使用方式 copy --from=<name>  
 在FROM之前声明的ARG不能在FROM之后的任何指令中使用。要使用在第一个From之前声明的arg的默认值，请使用在生成阶段内没有值的arg指令：
 ```
 ARG VERSION=latest
@@ -60,35 +60,35 @@ RUN echo $VERSION > image_version
 
 ### RUN执行命令
 格式如下两种：
-1. shell格式：RUN <command>  
+1. shell格式：`RUN <command>`  
 在shell中执行，默认是/bin/sh -c command  
-2. exec格式：RUN ["executable", "param1", "param2"]  
+2. exec格式：`RUN ["executable", "param1", "param2"]`  
 使用exec执行，使用bash执行RUN ["/bin/bash", "-c", "echo hello"]  
 
 ### COPY复制文件
 格式：  
-COPY [--chown=<user>:<group>] <src>... <dest>  
-COPY [--chown=<user>:<group>] ["<src>",... "<dest>"]  
+`COPY [--chown=<user>:<group>] <src>... <dest>`  
+`COPY [--chown=<user>:<group>] ["<src>",... "<dest>"]`  
 
 ### ADD更高级复制文件
-ADD [--chown=<user>:<group>] <src>... <dest>  
-ADD [--chown=<user>:<group>] ["<src>",... "<dest>"]  
+`ADD [--chown=<user>:<group>] <src>... <dest>`  
+`ADD [--chown=<user>:<group>] ["<src>",... "<dest>"]`  
 ADD指令和COPY的格式和性质基本一致。  
 <源路径>可以是一个URL，Docker引擎会试图去下载这个链接的文件放到<目标路径>去。下载后的文件权限自动设置为600,
 如果<源路径>为一个tar压缩文件的话，压缩格式为gzip , bzip2以及xz的情况 下，ADD指令将会自动解压缩这个压缩文件到<目标路径>去。
 
 ### CMD容器启动命令
-1. shell格式：CMD command param1 param2  
+1. shell格式：`CMD command param1 param2`  
 使用 /bin/sh -c 执行cmd  
-2. exec 格式：CMD ["executable","param1","param2"]  
+2. exec 格式：`CMD ["executable","param1","param2"]`  
 使用exec执行cmd  
-3. CMD ["param1","param2"]  
+3. `CMD ["param1","param2"]`  
 作为ENTRYPOINT的参数，ENTRYPOINT必须使用格式ENTRYPOINT ["executable", "param1", "param2"]  
 如果用户启动容器时候指定了运行的命令，则会覆盖掉 CMD 指定的命令。只能有一个CMD，如果有多个，只有最后一个生效。  
 
 ### ENTRYPOINT入口点
-1. ENTRYPOINT ["executable", "param1", "param2"] (exec form, preferred)  
-2. ENTRYPOINT command param1 param2 (shell form)  
+1. `ENTRYPOINT ["executable", "param1", "param2"] (exec form, preferred)`  
+2. `ENTRYPOINT command param1 param2 (shell form)`  
 ENTRYPOINT的目的和CMD一样，都是在指定容器启动程序及参数。ENTRYPOINT 在运行时也可以替代，需要通过docker run的参数 -entrypoint来指定。  
 当指定了ENTRYPOINT后，CMD的含义就发生了改变，不再是直接的运行其命令，而是将CMD的内容作为参数传给ENTRYPOINT指令，换句话说实际执行时，将变为：<ENTRYPOINT> "<CMD>"
 
