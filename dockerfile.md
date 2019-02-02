@@ -74,8 +74,8 @@ RUN echo $VERSION > image_version
 `ADD [--chown=<user>:<group>] <src>... <dest>`  
 `ADD [--chown=<user>:<group>] ["<src>",... "<dest>"]`  
 ADD指令和COPY的格式和性质基本一致。  
-<源路径>可以是一个URL，Docker引擎会试图去下载这个链接的文件放到<目标路径>去。下载后的文件权限自动设置为600,
-如果<源路径>为一个tar压缩文件的话，压缩格式为gzip , bzip2以及xz的情况 下，ADD指令将会自动解压缩这个压缩文件到<目标路径>去。
+<src>可以是一个URL，Docker引擎会试图去下载这个链接的文件放到<dest>去。下载后的文件权限自动设置为600,
+如果<src>为一个tar压缩文件的话，压缩格式为gzip , bzip2以及xz的情况 下，ADD指令将会自动解压缩这个压缩文件到<dest>去。
 
 ### CMD容器启动命令
 1. shell格式：`CMD command param1 param2`  
