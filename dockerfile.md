@@ -108,7 +108,7 @@ ${variable:+word}表示如果设置了变量，那么word将是结果，否则�
 通过$key ${key}访问  
 作用范围从定义开始到build stage结束为止，会被同名的ENV变量覆盖  
 构建参数和ENV的效果一样，都是设置环境变量。所不同的是，ARG所设置的构建环境的环境变量，在将来容器运行时是不会存在这些环境变量的。  
-Dockerfile中的ARG指令是定义参数名称，以及定义其默认值。该默认值可以在构建命令docker build中用--build-arg <varname>=<value>来覆盖。  
+Dockerfile中的ARG指令是定义参数名称，以及定义其默认值。该默认值可以在构建命令docker build中用`--build-arg <varname>=<value>`来覆盖。  
 
 ### VOLUME定义匿名卷
 格式为：`VOLUME ["<路径1>", "<路径2>"...]`  
