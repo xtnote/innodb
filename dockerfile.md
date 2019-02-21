@@ -49,7 +49,7 @@ Dockerfile 是一个文本文件，其内包含了一条条的指令(Instruction
 `FROM <image>[:<tag>] [AS <name>]`  
 `FROM <image>[@<digest>] [AS <name>]`  
 FROM必须是第一个或者在ARG之后  
-AS <name> 使用方式 copy --from=<name>  
+AS <name> 使用方式 `copy --from=<name>`  
 在FROM之前声明的ARG不能在FROM之后的任何指令中使用。要使用在第一个From之前声明的arg的默认值，请使用在生成阶段内没有值的arg指令：
 ```
 ARG VERSION=latest

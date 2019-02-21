@@ -1,43 +1,6 @@
 
 ### yml demo
 ```yaml
-version: '2'
-services:
-  web:
-    image: dockercloud/hello-world
-    ports:
-      - 8080
-    networks:
-      - front-tier
-      - back-tier
-
-  redis:
-    image: redis
-    links:
-      - web
-    networks:
-      - back-tier
-
-  lb:
-    image: dockercloud/haproxy
-    ports:
-      - 80:80
-    links:
-      - web
-    networks:
-      - front-tier
-      - back-tier
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-
-networks:
-  front-tier:
-    driver: bridge
-  back-tier:
-driver: bridge
-```
-
-```yaml
 version: "3"
 services:
 
@@ -156,11 +119,9 @@ volumes:
 
 ### 版本声明  
 `version: '3'`  
----
 
 # services下的标签  
 在services标签下的第二级标签是容器名，这个名字是用户自己自定义，它就是服务名称。
----
 
 ### services.container.image
 ```yaml
@@ -183,7 +144,7 @@ image指定服务的镜像名称或镜像ID。如果镜像在本地不存在，C
 ```yaml
 services:
   web:
-    build: /path/to/build/dir`
+    build: /path/to/build/dir
     #build: ./dir
 ```
 指向context的目录  
@@ -210,7 +171,7 @@ build:
 ```
 * context是一个包含dockerfile的目录，或者一个git的url，如果是一个相对目录，它是相对于compose文件的地址
 * dockerfile构建用的文件配置
-* args中的arg必须提前在dockerfile中声明，然后又compose传入，arg是允许空值的,构建过程可以向它们赋值，
+* args中的arg必须提前在dockerfile中声明，然后由compose传入，arg是允许空值的,构建过程可以向它们赋值，
 * labels设置生成镜像的元数据
 * shm_size设置/dev/shm的大小
 * target多阶段构建的目标
@@ -840,6 +801,7 @@ volumes:
     name: my-app-data1
 ```
 设置自定义卷名  
+
 ---
 
 # networks
