@@ -21,3 +21,6 @@ tar -jxvf examples.tar.bz2 （解压至当前执行目录下）
 tar -jxvf examples.tar.bz2  -C /path (/path 解压至其它路径)
 -j, --bzip2 filter the archive through bzip2 通过bzip2压缩的形式对文件进行归档
 ```
+
+### ssh-keygen
+`ssh-keygen -t rsa` 生成密钥，生成的密钥存储于`~/.ssh`中

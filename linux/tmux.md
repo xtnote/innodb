@@ -9,8 +9,6 @@ setw -g mouse-resize-pane on
 setw -g mouse-select-pane on  
 # 启用鼠标点击来切换活动window（点击位置是状态栏的窗口名称）
 setw -g mouse-select-window on
-# 开启window/pane里面的鼠标支持（也即可以用鼠标滚轮回滚显示窗口内容，此时还可以用鼠标选取文本）
-setw -g mode-mouse on
 ```
 
 ### ctrl+b
