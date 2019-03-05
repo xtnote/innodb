@@ -11,8 +11,8 @@ clone下来的repo会以url最后一个斜线后面的名称命名,创建一个�
 git status -s: -s表示short, -s的输出标记会有两列,第一列是对staging区域而言,第二列是对working目录而言.  
 
 ### git log
-show commit history of a branch.
-git log --oneline --number: 每条log只显示一行,显示number条.  
+show commit history of a branch.  
+git log --oneline -<number>: 每条log只显示一行,显示number条.  
 git log --oneline --graph:可以图形化地表示出分支合并历史.  
 git log branchname可以显示特定分支的log.  
 git log --oneline branch1 ^branch2,可以查看在分支1,却不在分支2中的提交.^表示排除这个分支(Window下可能要给^branch2加上引号).  
@@ -20,7 +20,7 @@ git log --decorate会显示出tag信息.
 git log --author=[author name] 可以指定作者的提交历史.  
 git log --since --before --until --after 根据提交时间筛选log.  
 --no-merges可以将merge的commits排除在外.  
-git log --grep 根据commit信息过滤log: git log --grep=keywords  
+git log --grep=keywords根据commit信息keywords过滤log  
 默认情况下, git log --grep --author是OR的关系,即满足一条即被返回,如果你想让它们是AND的关系,可以加上--all-match的option.  
 git log -S: filter by introduced diff.  
 比如: git log -SmethodName (注意S和后面的词之间没有等号分隔).  
@@ -55,22 +55,22 @@ git commit -a 会先把所有已经track的文件的改动add进来,然后提交
 git commit --amend 增补提交. 会使用与当前提交节点相同的父节点进行一次新的提交,旧的提交将会被取消.  
 
 ### git reset
-git reset HEAD: unstage files from index and reset pointer to HEAD
-这里的HEAD关键字指的是当前分支最末梢最新的一个提交.也就是版本库中该分支上的最新版本，这个命令用来把不小心add进去的文件从staged状态取出来,可以单独针对某一个文件操作: git reset HEAD -- filename, 这个--也可以不加.
-git reset --soft
-move HEAD to specific commit reference, index and staging are untouched.
-git reset --hard
+git reset HEAD: unstage files from index and reset pointer to HEAD  
+这里的HEAD关键字指的是当前分支最末梢最新的一个提交.也就是版本库中该分支上的最新版本，这个命令用来把不小心add进去的文件从staged状态取出来,可以单独针对某一个文件操作: git reset HEAD -- filename, 这个--也可以不加.  
+git reset --soft  
+move HEAD to specific commit reference, index and staging are untouched.  
+git reset --hard  
 unstage files AND undo any changes in the working directory since last commit.
-使用git reset —hard HEAD进行reset,即上次提交之后,所有staged的改动和工作目录的改动都会消失,还原到上次提交的状态.
-这里的HEAD可以被写成任何一次提交的SHA-1.
-不带soft和hard参数的git reset,实际上带的是默认参数mixed.
+使用git reset —hard HEAD进行reset,即上次提交之后,所有staged的改动和工作目录的改动都会消失,还原到上次提交的状态.  
+这里的HEAD可以被写成任何一次提交的SHA-1.  
+不带soft和hard参数的git reset,实际上带的是默认参数mixed.  
 
-总结:
-git reset --mixed id,是将git的HEAD变了(也就是提交记录变了),但文件并没有改变，(也就是working tree并没有改变). 取消了commit和add的内容.
-git reset --soft id. 实际上，是git reset –mixed id 后,又做了一次git add.即取消了commit的内容.
-git reset --hard id.是将git的HEAD变了,文件也变了.
-按改动范围排序如下:
-soft (commit) < mixed (commit + add) < hard (commit + add + local working)
+总结:  
+git reset --mixed id,是将git的HEAD变了(也就是提交记录变了),但文件并没有改变，(也就是working tree并没有改变). 取消了commit和add的内容.  
+git reset --soft id. 实际上，是git reset –mixed id 后,又做了一次git add.即取消了commit的内容.  
+git reset --hard id.是将git的HEAD变了,文件也变了.  
+按改动范围排序如下:  
+soft (commit) < mixed (commit + add) < hard (commit + add + local working)  
 
 ### git revert
 反转撤销提交.只要把出错的提交(commit)的名字(reference)作为参数传给命令就可以了.  
