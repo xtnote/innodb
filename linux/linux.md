@@ -24,3 +24,57 @@ tar -jxvf examples.tar.bz2  -C /path (/path 解压至其它路径)
 
 ### ssh-keygen
 `ssh-keygen -t rsa` 生成密钥，生成的密钥存储于`~/.ssh`中
+
+### date
+`Sun Mar 10 23:09:31 CST 2019`
+显示日期
+
+### cal
+```
+March 2019
+Su Mo Tu We Th Fr Sa
+           1  2
+3  4  5  6  7  8  9
+10 11 12 13 14 15 16
+17 18 19 20 21 22 23
+24 25 26 27 28 29 30
+31
+```
+显示日历
+
+### bc
+计算器
+
+### sync
+内存中数据写入磁盘
+
+### shutdown/reboot/halt/poweroff
+关机
+
+### init
+执行等级
+--run level 0 :关机  
+--run level 3 :纯文本模式  
+--run level 5 :含有图形接口模式  
+--run level 6 :重新启动  
+
+### chgrp group [-R] dirname/filename
+改变文件所属群组
+
+### chown user:group [-R] dir/file
+改变文件所属用户
+
+### head [-n num] file
+只看头几行
+
+### tail [-n num] file
+只看尾几行
+
+### od [-t type] file
+二进制方式查看
+
+### file
+查看文件类型
+
+### which [-a] cmd
+查找cmd位置，-a表示由path可以找到的所有指令均列出

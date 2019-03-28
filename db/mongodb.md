@@ -62,7 +62,7 @@ db.collection.find( { <field>: <value>, ... }， { <pfield>: [0|1], ... })
   and条件查询, 如果field是数组元素的域，则表示数组元素的域能分别满足所有条件
   如果field是数组，则只要含有value元素就算匹配
   value可以是document，value必须完全匹配包括顺序
-  field可以是嵌套域"field.nestedField"，必须有引号,如果value是document数组，则只要有一个document数组元素匹配就算匹配
+  field可以是嵌套域"field.nestedField"，必须有引号
   field可以是数组元素，比如"dim_cm.0"，"dim_cm.1"，"dim_cm.2"
   field可以是数组元素的域，比如'instock.0.qty'，'instock.1.qty'
   value是null时，表示不含有field，或者field的值是null，用{ item : { $exists: false } }表示不含有item，用{ item : { $type: "null" } }表示item是null
